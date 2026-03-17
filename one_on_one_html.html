@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>1:1 Session Manager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0F1117;color:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;padding:24px 20px}
+.wrap{max-width:760px;margin:0 auto}
+input,textarea,select{background:#1E2130;border:1px solid #2E3347;color:#F1F5F9;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;width:100%;outline:none;transition:border-color .15s}
+input:focus,textarea:focus{border-color:#3B82F6}
+input[type=date]{color-scheme:dark}
+input[type=number]{text-align:right}
+textarea{resize:vertical;line-height:1.5}
+button{font-family:inherit;cursor:pointer;transition:all .15s}
+.card{background:#161B2E;border:1px solid #2E3347;border-radius:12px;padding:16px 18px}
+.label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#64748B;margin-bottom:8px}
+.sec-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.ghost-btn{background:#1E2130;border:1px solid #2E3347;color:#94A3B8;border-radius:8px;padding:6px 14px;font-size:12px}
+.ghost-btn:hover{background:#2E3347;color:#F1F5F9}
+.ghost-btn:disabled{opacity:.4;cursor:not-allowed}
+.pill{border-radius:20px;padding:5px 14px;font-size:12px;border:1px solid transparent;cursor:pointer}
+.tab-bar{display:flex;gap:6px;background:#161B2E;border-radius:10px;padding:5px;border:1px solid #2E3347;margin-bottom:24px}
+.tab-btn{flex:1;padding:8px;border-radius:7px;border:none;font-size:13px;font-weight:400;color:#64748B;background:transparent}
+.tab-btn.active{background:#2E3347;color:#F1F5F9;font-weight:600}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.team-card{padding:14px 16px;border-radius:10px;border:1px solid #2E3347;background:#161B2E;text-align:left;cursor:pointer}
+.kpi-grid{display:grid;gap:0 20px}
+.kpi-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.kpi-row label{flex:1;font-size:13px;color:#94A3B8}
+.kpi-inp{display:flex;align-items:center;gap:6px;width:130px}
+.kpi-inp input{width:100%}
+.kpi-unit{color:#64748B;font-size:13px}
+.goal-row{display:grid;grid-template-columns:14px 1fr 110px 110px 24px;gap:6px 8px;margin-bottom:8px;align-items:center}
+.goal-dot{width:8px;height:8px;border-radius:50%;background:#2E3347;margin:0 auto}
+.goal-hdr{font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.rating-row{display:flex;gap:8px}
+.rating-btn{width:40px;height:40px;border-radius:8px;border:1px solid #2E3347;background:#1E2130;color:#64748B;font-weight:600;font-size:14px}
+.save-btn{width:100%;padding:12px;border-radius:10px;border:none;font-weight:700;font-size:14px;letter-spacing:.02em;margin-top:4px;color:#0F1117}
+.history-item{display:flex;align-items:center;gap:12px;background:#161B2E;border:1px solid #2E3347;border-radius:10px;padding:12px 16px;margin-bottom:8px}
+.history-bar{width:3px;height:36px;border-radius:2px;flex-shrink:0}
+.badge{font-size:13px;font-weight:700;border-radius:6px;padding:3px 10px}
+.print-actions{display:flex;gap:8px;justify-content:flex-end;margin-bottom:16px}
+.metric-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:24px}
+.metric-card{background:#1E2130;border-radius:10px;padding:12px 14px;border:1px solid #2E3347}
+.metric-val{font-size:22px;font-weight:700;color:#F1F5F9;margin-top:6px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.action-table{width:100%;border-collapse:collapse;font-size:13px}
+.action-table th{text-align:left;padding:6px 10px;font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #2E3347}
+.action-table td{padding:9px 10px;border-bottom:1px solid #1E2130}
+.print-footer{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+.rating-box{text-align:center;background:#1E2130;border-radius:10px;padding:12px 20px}
+.rating-big{font-size:32px;font-weight:700}
+.hidden{display:none}
+.empty-state{font-size:13px;color:#475569;padding:24px 0;text-align:center}
+.section-wrap{margin-bottom:20px}
+/* GitHub config panel */
+.cfg-panel{background:#161B2E;border:1px solid #2E3347;border-radius:12px;padding:20px;margin-bottom:28px}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.cfg-status{font-size:12px;margin-top:8px;min-height:18px}
+.cfg-status.ok{color:#34D399}
+.cfg-status.err{color:#F87171}
+.cfg-status.info{color:#94A3B8}
+/* Sync indicator */
+.sync-bar{display:flex;align-items:center;gap:8px;font-size:12px;color:#64748B;margin-bottom:16px;min-height:22px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#2E3347;flex-shrink:0}
+.sync-dot.synced{background:#34D399}
+.sync-dot.syncing{background:#F59E0B;animation:pulse 1s infinite}
+.sync-dot.error{background:#F87171}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.top-title{font-size:20px;font-weight:700;color:#F1F5F9;letter-spacing:-.01em}
+.top-sub{font-size:12px;color:#475569;margin-top:3px}
+.import-row{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  .no-print{display:none!important}
+  .card,.metric-card,.rating-box{background:#f8f8f8!important;border-color:#ddd!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-bar no-print">
+    <div>
+      <div class="top-title">1:1 Session Manager</div>
+      <div class="top-sub">Casino Operations · Manager Dashboard</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:#475569" id="topDate"></span>
+      <button class="ghost-btn" onclick="toggleConfig()" id="cfgToggle" style="font-size:11px;padding:4px 10px">⚙ GitHub</button>
+    </div>
+  </div>
+
+  <!-- GitHub Config Panel -->
+  <div class="cfg-panel no-print hidden" id="cfgPanel">
+    <div style="font-size:13px;font-weight:600;color:#F1F5F9;margin-bottom:14px">GitHub Storage Settings</div>
+    <div class="cfg-grid">
+      <div><div class="label">GitHub username</div><input id="cfgOwner" placeholder="e.g. johndoe" oninput="saveCfg()"/></div>
+      <div><div class="label">Repository name</div><input id="cfgRepo" placeholder="e.g. 1on1-manager" oninput="saveCfg()"/></div>
+    </div>
+    <div style="margin-bottom:10px"><div class="label">Personal Access Token (PAT)</div><input id="cfgToken" type="password" placeholder="ghp_xxxxxxxxxxxx" oninput="saveCfg()"/></div>
+    <div style="font-size:11px;color:#475569;margin-bottom:12px;line-height:1.6">
+      Token needs <strong style="color:#94A3B8">repo</strong> scope. It is stored only in your browser's localStorage — never sent anywhere except GitHub's API.
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="ghost-btn" onclick="testConnection()" style="font-size:12px">Test connection</button>
+      <button class="ghost-btn" onclick="loadFromGitHub(true)" style="font-size:12px">Pull sessions now</button>
+    </div>
+    <div class="cfg-status info" id="cfgStatus">Enter your details above and test the connection.</div>
+  </div>
+
+  <!-- Sync bar -->
+  <div class="sync-bar no-print" id="syncBar">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncMsg">Not connected — enter GitHub settings via ⚙ GitHub above.</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar no-print">
+    <button class="tab-btn active" onclick="switchTab('new')">New session</button>
+    <button class="tab-btn" id="historyTab" onclick="switchTab('history')">History (0)</button>
+  </div>
+
+  <!-- NEW SESSION VIEW -->
+  <div id="viewNew">
+    <div class="team-grid no-print">
+      <button class="team-card" id="btnRetention" onclick="switchTeam('retention')">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#93C5FD;margin-bottom:3px">R&amp;PV</div>
+        <div style="font-size:14px;font-weight:600;color:#F1F5F9">Retention &amp; Pre-VIP</div>
+      </button>
+      <button class="team-card" id="btnVip" onclick="switchTeam('vip')">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#FCD34D;margin-bottom:3px">VIP</div>
+        <div style="font-size:14px;font-weight:600;color:#64748B">VIP Team</div>
+      </button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px" class="no-print">
+      <div><div class="label">Team lead</div><input id="fLeadName" placeholder="Name"/></div>
+      <div><div class="label">Date</div><input type="date" id="fDate"/></div>
+      <div><div class="label">Period</div><input id="fPeriod" placeholder="e.g. W12"/></div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="sec-title" id="kpiTitle" style="color:#3B82F6">Performance metrics</div>
+      <div class="card"><div class="kpi-grid" id="kpiGrid"></div></div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="sec-title" id="moraleTitle" style="color:#3B82F6">Team health &amp; morale</div>
+      <div class="card">
+        <div style="margin-bottom:14px">
+          <div class="label">Overall morale</div>
+          <div style="display:flex;gap:8px" id="moraleRow"></div>
+        </div>
+        <div class="label">Notes</div>
+        <textarea id="fMoraleNotes" placeholder="Team sentiment, recent events, concerns..." rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="sec-title" id="blockersTitle" style="color:#3B82F6">Blockers &amp; challenges</div>
+      <div class="card">
+        <div style="margin-bottom:12px">
+          <div class="label">Current blockers</div>
+          <textarea id="fBlockers" placeholder="What's slowing the team down?" rows="2"></textarea>
+        </div>
+        <div class="label">Wins &amp; highlights</div>
+        <textarea id="fWins" placeholder="What went well this period?" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="sec-title" id="goalsTitle" style="color:#3B82F6">Goals &amp; action items</div>
+      <div class="card">
+        <div class="goal-row" style="margin-bottom:8px">
+          <div></div>
+          <div class="goal-hdr">Action item</div>
+          <div class="goal-hdr">Owner</div>
+          <div class="goal-hdr">Due date</div>
+          <div></div>
+        </div>
+        <div id="goalsContainer"></div>
+        <button class="ghost-btn" onclick="addGoal()" style="margin-top:4px;font-size:12px">+ Add item</button>
+        <span id="goalCount" style="font-size:12px;color:#64748B;margin-left:10px"></span>
+      </div>
+    </div>
+
+    <div class="section-wrap">
+      <div class="sec-title" id="notesTitle" style="color:#3B82F6">Manager notes &amp; rating</div>
+      <div class="card">
+        <div style="margin-bottom:14px">
+          <div class="label">Private notes</div>
+          <textarea id="fManagerNotes" placeholder="Internal observations, follow-ups, context..." rows="3"></textarea>
+        </div>
+        <div class="label">Session rating</div>
+        <div class="rating-row" id="ratingRow"></div>
+      </div>
+    </div>
+
+    <button class="save-btn no-print" id="saveBtn" onclick="saveSession()" style="background:#3B82F6">Save session →</button>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div id="viewHistory" class="hidden">
+    <div class="import-row no-print">
+      <button class="ghost-btn" id="exportBtn" onclick="exportJSON()">Export JSON</button>
+      <button class="ghost-btn" onclick="document.getElementById('importFile').click()">Import JSON</button>
+      <button class="ghost-btn" onclick="loadFromGitHub(true)" id="pullBtn">↓ Pull from GitHub</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)"/>
+      <span style="font-size:12px;color:#64748B" id="importMsg"></span>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- PRINT VIEW -->
+  <div id="viewPrint" class="hidden">
+    <div class="print-actions no-print">
+      <button id="printBtn" onclick="window.print()" style="background:#3B82F6;color:#0F1117;border:none;border-radius:8px;padding:7px 18px;font-weight:700;font-size:13px">Print / Save PDF</button>
+      <button class="ghost-btn" onclick="closePrint()">← Back</button>
+    </div>
+    <div class="card" style="padding:28px 32px" id="printContent"></div>
+  </div>
+
+</div>
+<script>
+const TEAMS={retention:{label:'Retention & Pre-VIP',short:'R&PV',accent:'#3B82F6',accentDim:'rgba(59,130,246,0.15)',accentText:'#93C5FD',kpis:[{key:'reactivation_rate',label:'Reactivation rate',unit:'%'},{key:'phone_calls',label:'Phone calls',unit:''},{key:'contacts',label:'Contacts',unit:''},{key:'upgrades',label:'Upgrades to Pre-VIP',unit:''}]},vip:{label:'VIP Team',short:'VIP',accent:'#F59E0B',accentDim:'rgba(245,158,11,0.15)',accentText:'#FCD34D',kpis:[{key:'deposits',label:'Deposits',unit:'€'},{key:'withdrawals',label:'Withdrawals',unit:'€'},{key:'active_players',label:'Active players',unit:''},{key:'phone_calls',label:'Phone calls',unit:''},{key:'contacts',label:'Contacts',unit:''},{key:'bonuses_given',label:'Bonuses given',unit:'€'}]}};
+const MORALE=[{label:'High',icon:'▲',color:'#34D399'},{label:'Neutral',icon:'●',color:'#94A3B8'},{label:'Low',icon:'▼',color:'#F87171'}];
+
+let state={teamKey:'retention',selectedMorale:'',selectedRating:0,goals:[{text:'',owner:'',due:''}],history:[],activeTab:'new',printId:null,fileSha:null};
+
+// ── GitHub helpers ──────────────────────────────────────────────
+function getCfg(){return{owner:localStorage.getItem('gh_owner')||'',repo:localStorage.getItem('gh_repo')||'',token:localStorage.getItem('gh_token')||''};}
+function saveCfg(){localStorage.setItem('gh_owner',document.getElementById('cfgOwner').value.trim());localStorage.setItem('gh_repo',document.getElementById('cfgRepo').value.trim());localStorage.setItem('gh_token',document.getElementById('cfgToken').value.trim());}
+function toggleConfig(){const p=document.getElementById('cfgPanel');p.classList.toggle('hidden');if(!p.classList.contains('hidden')){const c=getCfg();document.getElementById('cfgOwner').value=c.owner;document.getElementById('cfgRepo').value=c.repo;document.getElementById('cfgToken').value=c.token;}}
+
+function setSyncState(state_,msg){const dot=document.getElementById('syncDot');const txt=document.getElementById('syncMsg');dot.className='sync-dot '+state_;txt.textContent=msg;}
+
+async function ghFetch(path,opts={}){const c=getCfg();if(!c.owner||!c.repo||!c.token)return null;const url=`https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;return fetch(url,{...opts,headers:{'Authorization':'token '+c.token,'Content-Type':'application/json',...(opts.headers||{})}});}
+
+async function testConnection(){const s=document.getElementById('cfgStatus');s.className='cfg-status info';s.textContent='Testing…';saveCfg();const c=getCfg();if(!c.owner||!c.repo||!c.token){s.className='cfg-status err';s.textContent='Fill in all three fields first.';return;}try{const r=await fetch(`https://api.github.com/repos/${c.owner}/${c.repo}`,{headers:{'Authorization':'token '+c.token}});if(r.ok){s.className='cfg-status ok';s.textContent='✓ Connected successfully! You can now save sessions to GitHub.';setSyncState('synced','Connected to '+c.owner+'/'+c.repo);loadFromGitHub(false);}else{s.className='cfg-status err';s.textContent='✗ Failed ('+r.status+'). Check username, repo name and token.';setSyncState('error','Connection failed.');}}catch(e){s.className='cfg-status err';s.textContent='✗ Network error: '+e.message;}}
+
+async function loadFromGitHub(showMsg=false){const c=getCfg();if(!c.owner||!c.repo||!c.token)return;setSyncState('syncing','Loading sessions…');try{const r=await ghFetch('sessions.json');if(r&&r.ok){const d=await r.json();state.fileSha=d.sha;const sessions=JSON.parse(atob(d.content.replace(/\n/g,'')));state.history=sessions;updateHistoryTab();if(showMsg)showImportMsg('Pulled '+sessions.length+' session(s) from GitHub.');setSyncState('synced','Synced with GitHub · '+new Date().toLocaleTimeString());}else if(r&&r.status===404){state.fileSha=null;setSyncState('synced','Connected — no sessions file yet. It will be created on first save.');}else{setSyncState('error','Could not load sessions.');}}catch(e){setSyncState('error','Load error: '+e.message);}}
+
+async function saveToGitHub(){const c=getCfg();if(!c.owner||!c.repo||!c.token)return false;setSyncState('syncing','Saving to GitHub…');try{const content=btoa(unescape(encodeURIComponent(JSON.stringify(state.history,null,2))));const body={message:`Update 1:1 sessions · ${new Date().toISOString().split('T')[0]}`,content};if(state.fileSha)body.sha=state.fileSha;const r=await ghFetch('sessions.json',{method:'PUT',body:JSON.stringify(body)});if(r&&r.ok){const d=await r.json();state.fileSha=d.content.sha;setSyncState('synced','Saved to GitHub · '+new Date().toLocaleTimeString());return true;}else{const err=await r.json();setSyncState('error','Save failed: '+(err.message||r.status));return false;}}catch(e){setSyncState('error','Save error: '+e.message);return false;}}
+
+// ── Init ────────────────────────────────────────────────────────
+function init(){document.getElementById('topDate').textContent=new Date().toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});document.getElementById('fDate').value=new Date().toISOString().split('T')[0];renderKPIs();renderMorale();renderRating();renderGoals();highlightTeam();const c=getCfg();if(c.owner&&c.repo&&c.token){setSyncState('syncing','Connecting to GitHub…');loadFromGitHub(false);}else{setSyncState('','Not connected — enter GitHub settings via ⚙ GitHub above.');}}
+
+// ── Tab / team switching ────────────────────────────────────────
+function switchTab(t){state.activeTab=t;document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='new')||(i===1&&t==='history')));document.getElementById('viewNew').classList.toggle('hidden',t!=='new');document.getElementById('viewHistory').classList.toggle('hidden',t!=='history');document.getElementById('viewPrint').classList.add('hidden');if(t==='history')renderHistory();}
+
+function switchTeam(tk){state.teamKey=tk;state.selectedMorale='';state.selectedRating=0;state.goals=[{text:'',owner:'',due:''}];['fLeadName','fMoraleNotes','fBlockers','fWins','fManagerNotes'].forEach(id=>document.getElementById(id).value='');document.getElementById('fDate').value=new Date().toISOString().split('T')[0];document.getElementById('fPeriod').value='';renderKPIs();renderMorale();renderRating();renderGoals();highlightTeam();}
+
+function highlightTeam(){const tc=TEAMS[state.teamKey];['retention','vip'].forEach(k=>{const btn=document.getElementById('btn'+k.charAt(0).toUpperCase()+k.slice(1));const t=TEAMS[k];btn.style.border=`1px solid ${k===state.teamKey?t.accent:'#2E3347'}`;btn.style.background=k===state.teamKey?t.accentDim:'#161B2E';btn.querySelector('div:last-child').style.color=k===state.teamKey?'#F1F5F9':'#64748B';});['kpiTitle','moraleTitle','blockersTitle','goalsTitle','notesTitle'].forEach(id=>document.getElementById(id).style.color=tc.accent);document.getElementById('saveBtn').style.background=tc.accent;}
+
+// ── Render helpers ───────────────────────────────────────────────
+function renderKPIs(){const tc=TEAMS[state.teamKey];const g=document.getElementById('kpiGrid');g.style.gridTemplateColumns=tc.kpis.length>4?'1fr 1fr':'1fr';g.innerHTML=tc.kpis.map(k=>`<div class="kpi-row"><label>${k.label}</label><div class="kpi-inp">${k.unit==='€'?'<span class="kpi-unit">€</span>':''}<input type="number" id="kpi_${k.key}" placeholder="—"/>${k.unit==='%'?'<span class="kpi-unit">%</span>':''}</div></div>`).join('');}
+
+function renderMorale(){document.getElementById('moraleRow').innerHTML=MORALE.map(m=>`<button class="pill" onclick="selectMorale('${m.label}')" style="background:${state.selectedMorale===m.label?m.color+'22':'#1E2130'};border:1px solid ${state.selectedMorale===m.label?m.color:'#2E3347'};color:${state.selectedMorale===m.label?m.color:'#64748B'};font-weight:${state.selectedMorale===m.label?'600':'400'}"><span style="margin-right:5px">${m.icon}</span>${m.label}</button>`).join('');}
+function selectMorale(v){state.selectedMorale=v;renderMorale();}
+
+function renderRating(){const tc=TEAMS[state.teamKey];document.getElementById('ratingRow').innerHTML=[1,2,3,4,5].map(r=>`<button class="rating-btn" onclick="selectRating(${r})" style="border:1px solid ${state.selectedRating===r?tc.accent:'#2E3347'};background:${state.selectedRating===r?tc.accentDim:'#1E2130'};color:${state.selectedRating===r?tc.accentText:'#64748B'}">${r}</button>`).join('');}
+function selectRating(v){state.selectedRating=v;renderRating();}
+
+function renderGoals(){const tc=TEAMS[state.teamKey];document.getElementById('goalsContainer').innerHTML=state.goals.map((g,i)=>`<div class="goal-row"><div class="goal-dot${g.text?' filled':''}" style="${g.text?'background:'+tc.accent:''}"></div><input value="${esc(g.text)}" oninput="updateGoal(${i},'text',this.value)" placeholder="Describe the action..."/><input value="${esc(g.owner)}" oninput="updateGoal(${i},'owner',this.value)" placeholder="Owner"/><input type="date" value="${g.due}" oninput="updateGoal(${i},'due',this.value)"/><button onclick="removeGoal(${i})" style="background:none;border:none;color:#475569;font-size:16px;line-height:1">×</button></div>`).join('');const filled=state.goals.filter(g=>g.text).length;document.getElementById('goalCount').textContent=filled?`${filled} item${filled!==1?'s':''}`:'';
+}
+function updateGoal(i,f,v){state.goals[i][f]=v;renderGoals();}
+function addGoal(){state.goals.push({text:'',owner:'',due:''});renderGoals();}
+function removeGoal(i){state.goals.splice(i,1);if(!state.goals.length)state.goals=[{text:'',owner:'',due:''}];renderGoals();}
+
+// ── Save session ─────────────────────────────────────────────────
+function collectSession(){const tc=TEAMS[state.teamKey];const kpis={};tc.kpis.forEach(k=>{const el=document.getElementById('kpi_'+k.key);kpis[k.key]=el?el.value:'';});return{id:Date.now(),teamKey:state.teamKey,date:document.getElementById('fDate').value,leadName:document.getElementById('fLeadName').value,period:document.getElementById('fPeriod').value,kpis,morale:state.selectedMorale,moraleNotes:document.getElementById('fMoraleNotes').value,blockers:document.getElementById('fBlockers').value,wins:document.getElementById('fWins').value,goals:state.goals.filter(g=>g.text),overallRating:state.selectedRating||'',managerNotes:document.getElementById('fManagerNotes').value};}
+
+async function saveSession(){const s=collectSession();state.history.push(s);updateHistoryTab();const btn=document.getElementById('saveBtn');btn.textContent='Saving…';btn.disabled=true;const ok=await saveToGitHub();btn.textContent='Save session →';btn.disabled=false;if(!ok){const c=getCfg();if(!c.owner||!c.repo||!c.token)showImportMsg('Saved locally. Connect GitHub in ⚙ settings to sync.');}switchTeam(state.teamKey);switchTab('history');}
+
+function updateHistoryTab(){document.getElementById('historyTab').textContent=`History (${state.history.length})`;}
+
+// ── History ──────────────────────────────────────────────────────
+function renderHistory(){const el=document.getElementById('historyList');document.getElementById('exportBtn').disabled=!state.history.length;if(!state.history.length){el.innerHTML='<div class="empty-state">No sessions yet. Complete a new session or pull from GitHub.</div>';return;}el.innerHTML=[...state.history].reverse().map(s=>{const tc=TEAMS[s.teamKey];const m=MORALE.find(x=>x.label===s.morale);return`<div class="history-item"><div class="history-bar" style="background:${tc.accent}"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#F1F5F9;margin-bottom:2px">${esc(s.leadName)||'Unnamed'} <span style="color:#475569;font-weight:400">· ${tc.label}</span></div><div style="font-size:12px;color:#64748B">${s.date}${s.period?' · '+esc(s.period):''}${m?` <span style="color:${m.color}">${m.icon} ${m.label}</span>`:''}</div></div>${s.overallRating?`<div class="badge" style="color:${tc.accentText};background:${tc.accentDim}">${s.overallRating}/5</div>`:''}<button class="ghost-btn" onclick="viewSession(${s.id})">View</button><button onclick="deleteSession(${s.id})" style="background:none;border:none;color:#475569;font-size:18px;line-height:1;padding:0 4px">×</button></div>`;}).join('');}
+
+async function deleteSession(id){if(!confirm('Delete this session?'))return;state.history=state.history.filter(s=>s.id!==id);updateHistoryTab();renderHistory();await saveToGitHub();}
+
+// ── Print view ───────────────────────────────────────────────────
+function viewSession(id){const s=state.history.find(x=>x.id===id);if(!s)return;state.printId=id;renderPrint(s);document.getElementById('viewNew').classList.add('hidden');document.getElementById('viewHistory').classList.add('hidden');document.getElementById('viewPrint').classList.remove('hidden');document.getElementById('printBtn').style.background=TEAMS[s.teamKey].accent;}
+function closePrint(){document.getElementById('viewPrint').classList.add('hidden');switchTab(state.activeTab||'history');}
+
+function renderPrint(s){const tc=TEAMS[s.teamKey];const m=MORALE.find(x=>x.label===s.morale);const goalsHtml=s.goals&&s.goals.length?`<table class="action-table"><thead><tr><th>Action item</th><th>Owner</th><th>Due date</th></tr></thead><tbody>${s.goals.map(g=>`<tr><td style="color:#F1F5F9">${esc(g.text)}</td><td style="color:#94A3B8">${esc(g.owner)||'—'}</td><td style="color:#94A3B8">${g.due||'—'}</td></tr>`).join('')}</tbody></table>`:'<div style="font-size:13px;color:#64748B">No items recorded.</div>';
+document.getElementById('printContent').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid ${tc.accent}44;padding-bottom:18px;margin-bottom:24px"><div><div style="font-size:22px;font-weight:700;color:${tc.accentText};margin-bottom:4px">${tc.label}</div><div style="font-size:13px;color:#64748B">1:1 Session Record</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:600;color:#F1F5F9">${esc(s.leadName)||'—'}</div><div style="font-size:12px;color:#64748B;margin-top:2px">${s.date}${s.period?' · '+esc(s.period):''}</div></div></div><div style="margin-bottom:24px"><div class="sec-title" style="color:${tc.accent}">Performance metrics</div><div class="metric-cards">${tc.kpis.map(k=>`<div class="metric-card"><div style="font-size:11px;color:#64748B">${k.label}</div><div class="metric-val">${k.unit==='€'?'€':''}${s.kpis[k.key]||'—'}${k.unit==='%'?'%':''}</div></div>`).join('')}</div></div><div class="two-col"><div><div class="sec-title" style="color:${tc.accent}">Team morale</div>${m?`<div style="font-size:14px;font-weight:600;color:${m.color};margin-bottom:6px">${m.icon} ${m.label}</div>`:''}${ s.moraleNotes?`<div style="font-size:13px;color:#94A3B8">${esc(s.moraleNotes)}</div>`:'<div style="font-size:13px;color:#64748B">—</div>'}</div><div><div class="sec-title" style="color:${tc.accent}">Wins &amp; highlights</div><div style="font-size:13px;color:#94A3B8">${esc(s.wins)||'—'}</div></div></div><div style="margin-bottom:20px"><div class="sec-title" style="color:${tc.accent}">Blockers &amp; challenges</div><div style="font-size:13px;color:#94A3B8">${esc(s.blockers)||'—'}</div></div><div style="margin-bottom:20px"><div class="sec-title" style="color:${tc.accent}">Goals &amp; action items</div>${goalsHtml}</div><div class="print-footer"><div><div class="sec-title" style="color:${tc.accent}">Manager notes</div><div style="font-size:13px;color:#94A3B8">${esc(s.managerNotes)||'—'}</div></div><div class="rating-box" style="border:1px solid ${tc.accent}44"><div class="label" style="color:${tc.accent}">Rating</div><div class="rating-big" style="color:${tc.accentText}">${s.overallRating||'—'}<span style="font-size:14px;color:#64748B">/5</span></div></div></div>`;}
+
+// ── Import / Export ──────────────────────────────────────────────
+function exportJSON(){if(!state.history.length)return;const blob=new Blob([JSON.stringify({version:1,sessions:state.history},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`1on1-sessions-${new Date().toISOString().split('T')[0]}.json`;a.click();URL.revokeObjectURL(a.href);}
+function importJSON(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async ev=>{try{const parsed=JSON.parse(ev.target.result);const incoming=parsed.sessions||(Array.isArray(parsed)?parsed:[]);if(!incoming.length){showImportMsg('No sessions found.');return;}const ids=new Set(state.history.map(s=>s.id));const newOnes=incoming.filter(s=>!ids.has(s.id));state.history=[...state.history,...newOnes];updateHistoryTab();renderHistory();showImportMsg(`Imported ${newOnes.length} session(s).`);await saveToGitHub();}catch{showImportMsg('Invalid file.');}};reader.readAsText(file);e.target.value='';}
+function showImportMsg(msg){const el=document.getElementById('importMsg');el.textContent=msg;setTimeout(()=>el.textContent='',4000);}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+init();
+</script>
+</body>
+</html>
