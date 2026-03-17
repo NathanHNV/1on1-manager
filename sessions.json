@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1773758941213,
+    "teamKey": "vip",
+    "date": "2026-03-17",
+    "leadName": "Tester",
+    "period": "W19",
+    "kpis": {
+      "deposits": "154844",
+      "withdrawals": "16555",
+      "active_players": "128",
+      "phone_calls": "10",
+      "contacts": "3545",
+      "bonuses_given": "1548"
+    },
+    "morale": "Neutral",
+    "moraleNotes": "test health box",
+    "blockers": "test blockers",
+    "wins": "test winsaaa",
+    "goals": [
+      {
+        "text": "action 1",
+        "owner": "dave",
+        "due": ""
+      }
+    ],
+    "overallRating": 4,
+    "managerNotes": "fdffg"
+  }
+]
